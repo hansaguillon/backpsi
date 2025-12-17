@@ -1,26 +1,84 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Patient } from './entities/patient.entity';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class PatientsService {
-  create(createPatientDto: CreatePatientDto) {
-    return 'This action adds a new patient';
+  constructor(
+    @InjectRepository(Patient)
+    private readonly patientsRepository: Repository<Patient>,
+    private readonly auditService: AuditService,
+  ) {}
+
+  async create(createPatientDto: CreatePatientDto, userId: string): Promise<Patient> {
+    const patient = this.patientsRepository.create(createPatientDto);
+
+    const savedPatient = await this.patientsRepository.save(patient);
+
+    await this.auditService.log(
+      userId,
+      'CREATED',
+      'PATIENT',
+      savedPatient.id,
+    );
+
+    return savedPatient;
   }
 
-  findAll() {
-    return `This action returns all patients`;
+  async findAll(): Promise<Patient[]> {
+    return this.patientsRepository.find({
+      order: { created_at: 'DESC' },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} patient`;
+  async findOne(id: string): Promise<Patient> {
+    const patient = await this.patientsRepository.findOne({
+      where: { id },
+      relations: ['sessions'],
+    });
+
+    if (!patient) {
+      throw new NotFoundException(`Paciente con ID ${id} no encontrado`);
+    }
+
+    return patient;
   }
 
-  update(id: number, updatePatientDto: UpdatePatientDto) {
-    return `This action updates a #${id} patient`;
+  async update(
+    id: string,
+    updatePatientDto: UpdatePatientDto,
+    userId: string,
+  ): Promise<Patient> {
+    const patient = await this.findOne(id);
+
+    Object.assign(patient, updatePatientDto);
+
+    const updatedPatient = await this.patientsRepository.save(patient);
+
+    await this.auditService.log(
+      userId,
+      'EDIT',
+      'PATIENT',
+      id,
+    );
+
+    return updatedPatient;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} patient`;
+  async remove(id: string, userId: string): Promise<void> {
+    const patient = await this.findOne(id);
+
+    await this.patientsRepository.remove(patient);
+
+    await this.auditService.log(
+      userId,
+      'EDIT',
+      'PATIENT',
+      id,
+    );
   }
 }

@@ -1,7 +1,16 @@
-// src/users/dto/create-user.dto.ts
 import { IsString, MinLength } from 'class-validator';
 
-export class CreateUserDto {
+export class LoginDto {
+  @IsString()
+  username: string;
+
+  @IsString()
+  @MinLength(6)
+  password: string;
+}
+
+
+export class RegisterDto {
   @IsString()
   username: string;
 
@@ -12,4 +21,3 @@ export class CreateUserDto {
   @IsString()
   name: string;
 }
-

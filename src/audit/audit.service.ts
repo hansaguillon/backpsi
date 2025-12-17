@@ -1,26 +1,67 @@
 import { Injectable } from '@nestjs/common';
-import { CreateAuditDto } from './dto/create-audit.dto';
-import { UpdateAuditDto } from './dto/update-audit.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, Between } from 'typeorm';
+import { AuditLog } from './entities/audit.entity';
 
 @Injectable()
 export class AuditService {
-  create(createAuditDto: CreateAuditDto) {
-    return 'This action adds a new audit';
+  constructor(
+    @InjectRepository(AuditLog)
+    private readonly auditRepository: Repository<AuditLog>,
+  ) {}
+
+async log(
+  userId: string,
+  action: string,
+  entityType: string,
+  entityId: string,
+  details?: string,
+): Promise<AuditLog> {
+  const auditLog = this.auditRepository.create({
+    user_id: userId,              // ✅ FK directa
+    action,
+    entity_type: entityType,
+    entity_id: entityId,
+    details: details ?? '',       // ✅ nunca null
+  });
+
+  return this.auditRepository.save(auditLog);
+}
+
+  async findAll(userId: string): Promise<AuditLog[]> {
+    return this.auditRepository.find({
+      where: { user: { id: userId } },
+      order: { timestamp: 'DESC' },
+      take: 100,
+    });
   }
 
-  findAll() {
-    return `This action returns all audit`;
+  async findByDateRange(
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<AuditLog[]> {
+    return this.auditRepository.find({
+      where: {
+        user: { id: userId },
+        timestamp: Between(startDate, endDate),
+      },
+      order: { timestamp: 'DESC' },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} audit`;
-  }
-
-  update(id: number, updateAuditDto: UpdateAuditDto) {
-    return `This action updates a #${id} audit`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} audit`;
+  async findByEntity(
+    userId: string,
+    entityType: string,
+    entityId: string,
+  ): Promise<AuditLog[]> {
+    return this.auditRepository.find({
+      where: {
+        user: { id: userId },
+        entity_type: entityType,
+        entity_id: entityId,
+      },
+      order: { timestamp: 'DESC' },
+    });
   }
 }

@@ -1,8 +1,9 @@
 import { Module, forwardRef } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { AddendaService } from './addenda.service';
 import { AddendaController } from './addenda.controller';
-import { DatabaseModule } from '../database/database.module';
-import { addendaProviders } from './addenda.providers';
+import { Addendum } from './entities/addendum.entity';
 
 // Relaciones
 import { SessionsModule } from '../sessions/sessions.module';
@@ -11,16 +12,14 @@ import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [
-    DatabaseModule,
-    forwardRef(() => SessionsModule), // Validar sesión original
-    forwardRef(() => UsersModule),    // Validar usuario creador
+    TypeOrmModule.forFeature([Addendum]),
+
+    forwardRef(() => SessionsModule),
+    forwardRef(() => UsersModule),
     forwardRef(() => AuditModule),
   ],
   controllers: [AddendaController],
-  providers: [
-    ...addendaProviders,
-    AddendaService,
-  ],
+  providers: [AddendaService],
   exports: [AddendaService],
 })
 export class AddendaModule {}

@@ -1,34 +1,40 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Request } from '@nestjs/common';
 import { AuditService } from './audit.service';
-import { CreateAuditDto } from './dto/create-audit.dto';
-import { UpdateAuditDto } from './dto/update-audit.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('audit')
+@UseGuards(JwtAuthGuard)
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
-  @Post()
-  create(@Body() createAuditDto: CreateAuditDto) {
-    return this.auditService.create(createAuditDto);
-  }
-
   @Get()
-  findAll() {
-    return this.auditService.findAll();
+  findAll(@Request() req) {
+    return this.auditService.findAll(req.user.sub);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.auditService.findOne(+id);
+  @Get('range')
+  findByDateRange(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Request() req,
+  ) {
+    return this.auditService.findByDateRange(
+      req.user.sub,
+      new Date(startDate),
+      new Date(endDate),
+    );
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuditDto: UpdateAuditDto) {
-    return this.auditService.update(+id, updateAuditDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.auditService.remove(+id);
+  @Get('entity')
+  findByEntity(
+    @Query('type') entityType: string,
+    @Query('id') entityId: string,
+    @Request() req,
+  ) {
+    return this.auditService.findByEntity(
+      req.user.sub,
+      entityType,
+      entityId,
+    );
   }
 }

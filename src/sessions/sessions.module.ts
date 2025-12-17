@@ -1,8 +1,9 @@
 import { Module, forwardRef } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { SessionsService } from './sessions.service';
 import { SessionsController } from './sessions.controller';
-import { DatabaseModule } from '../database/database.module';
-import { sessionsProviders } from './sessions.providers';
+import { Session } from './entities/session.entity';
 
 // Relaciones
 import { PatientsModule } from '../patients/patients.module';
@@ -11,16 +12,13 @@ import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [
-    DatabaseModule,
-    forwardRef(() => PatientsModule), // Necesitamos validar el paciente
-    forwardRef(() => AddendaModule),  // Una sesión tiene adendas
-    forwardRef(() => AuditModule),    // Auditar bloqueos y creaciones
+    TypeOrmModule.forFeature([Session]), // 👈 CLAVE
+    forwardRef(() => PatientsModule),
+    forwardRef(() => AddendaModule),
+    forwardRef(() => AuditModule),
   ],
   controllers: [SessionsController],
-  providers: [
-    ...sessionsProviders,
-    SessionsService,
-  ],
-  exports: [SessionsService], // Exportamos para que Addenda pueda consultarlo
+  providers: [SessionsService],
+  exports: [SessionsService],
 })
 export class SessionsModule {}

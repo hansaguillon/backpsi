@@ -1,34 +1,28 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { AddendaService } from './addenda.service';
 import { CreateAddendumDto } from './dto/create-addendum.dto';
-import { UpdateAddendumDto } from './dto/update-addendum.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('addenda')
+@UseGuards(JwtAuthGuard)
 export class AddendaController {
   constructor(private readonly addendaService: AddendaService) {}
 
   @Post()
-  create(@Body() createAddendumDto: CreateAddendumDto) {
-    return this.addendaService.create(createAddendumDto);
+  create(@Body() dto: CreateAddendumDto, @Request() req) {
+    return this.addendaService.create(dto, req.user.sub);
   }
 
-  @Get()
-  findAll() {
-    return this.addendaService.findAll();
+  @Get('session/:sessionId')
+  findAllBySession(
+    @Param('sessionId') sessionId: string,
+    @Request() req,
+  ) {
+    return this.addendaService.findAllBySession(sessionId, req.user.sub);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.addendaService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAddendumDto: UpdateAddendumDto) {
-    return this.addendaService.update(+id, updateAddendumDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.addendaService.remove(+id);
+  findOne(@Param('id') id: string, @Request() req) {
+    return this.addendaService.findOne(id, req.user.sub);
   }
 }
