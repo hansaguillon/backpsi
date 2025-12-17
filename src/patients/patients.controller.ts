@@ -21,7 +21,7 @@ export class PatientsController {
 
   @Post()
   create(@Body() createPatientDto: CreatePatientDto, @Request() req) {
-    return this.patientsService.create(createPatientDto, req.user.sub);
+    return this.patientsService.create(createPatientDto, req.user);
   }
 
   @Get()
@@ -40,11 +40,11 @@ export class PatientsController {
     @Body() updatePatientDto: UpdatePatientDto,
     @Request() req,
   ) {
-    return this.patientsService.update(id, updatePatientDto, req.user.sub);
+    return this.patientsService.update(id, updatePatientDto, req.user);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string, @Request() req) {
-    return this.patientsService.remove(id, req.user.sub);
+    return this.patientsService.remove(id, req.user);
   }
 }

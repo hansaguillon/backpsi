@@ -14,13 +14,12 @@ export class PatientsService {
     private readonly auditService: AuditService,
   ) {}
 
-  async create(createPatientDto: CreatePatientDto, userId: string): Promise<Patient> {
+  async create(createPatientDto: CreatePatientDto, user: { sub: string; email: string }): Promise<Patient> {
     const patient = this.patientsRepository.create(createPatientDto);
-
     const savedPatient = await this.patientsRepository.save(patient);
 
     await this.auditService.log(
-      userId,
+      user.sub,
       'CREATED',
       'PATIENT',
       savedPatient.id,
@@ -51,16 +50,14 @@ export class PatientsService {
   async update(
     id: string,
     updatePatientDto: UpdatePatientDto,
-    userId: string,
+    user: { sub: string; email: string },
   ): Promise<Patient> {
     const patient = await this.findOne(id);
-
     Object.assign(patient, updatePatientDto);
-
     const updatedPatient = await this.patientsRepository.save(patient);
 
     await this.auditService.log(
-      userId,
+      user.sub,
       'EDIT',
       'PATIENT',
       id,
@@ -69,14 +66,13 @@ export class PatientsService {
     return updatedPatient;
   }
 
-  async remove(id: string, userId: string): Promise<void> {
+  async remove(id: string, user: { sub: string; email: string }): Promise<void> {
     const patient = await this.findOne(id);
-
     await this.patientsRepository.remove(patient);
 
     await this.auditService.log(
-      userId,
-      'EDIT',
+      user.sub,
+      'DELETE',
       'PATIENT',
       id,
     );

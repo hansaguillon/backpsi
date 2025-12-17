@@ -1,28 +1,23 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { User } from '../users/entities/user.entity';
 import { AuditModule } from '../audit/audit.module';
+import { JwtStrategy } from './strategies/jwt.strategy'; // Asegurate de importar tu estrategia
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
-    ConfigModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        secret: config.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1d' },
-      }),
+    JwtModule.register({
+      secret: 'mi_clave_super_secreta', // clave fija directamente
+      signOptions: { expiresIn: '1d' }, // opcional, define expiración
     }),
     AuditModule,
   ],
-  providers: [AuthService],
+  providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
   exports: [AuthService],
 })
