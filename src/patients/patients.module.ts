@@ -1,6 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
 import { PatientsService } from './patients.service';
 import { PatientsController } from './patients.controller';
 import { Patient } from './entities/patient.entity';
@@ -8,12 +7,14 @@ import { Patient } from './entities/patient.entity';
 // Relaciones
 import { SessionsModule } from '../sessions/sessions.module';
 import { AuditModule } from '../audit/audit.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Patient]), // 👈 CLAVE
     forwardRef(() => SessionsModule),
     forwardRef(() => AuditModule),
+    forwardRef(() => AuthModule),
   ],
   controllers: [PatientsController],
   providers: [PatientsService],

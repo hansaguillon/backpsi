@@ -6,7 +6,7 @@ export class AuditLog {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'enum', enum: ['CREATE', 'EDIT', 'LOCK', 'ADDENDUM', 'ACCESS', 'LOGIN', 'LOGOUT'] })
+  @Column({ type: 'enum', enum: ['CREATE', 'EDIT', 'LOCK', 'ADDENDUM', 'ACCESS', 'LOGIN', 'LOGOUT','DELETE'] })
   action: string;
 
   @Column({ type: 'enum', enum: ['PATIENT', 'SESSION', 'ADDENDUM', 'SYSTEM'] })

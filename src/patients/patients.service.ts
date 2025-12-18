@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Patient } from './entities/patient.entity';
@@ -14,26 +18,49 @@ export class PatientsService {
     private readonly auditService: AuditService,
   ) {}
 
-  async create(createPatientDto: CreatePatientDto, user: { sub: string; email: string }): Promise<Patient> {
-    const patient = this.patientsRepository.create(createPatientDto);
-    const savedPatient = await this.patientsRepository.save(patient);
+  // =========================
+  // CREATE
+  // =========================
+  async create(
+    dto: CreatePatientDto,
+    user: { sub: string; email: string },
+  ): Promise<Patient> {
+    // 🔍 Validar DNI duplicado
+    const existing = await this.patientsRepository.findOne({
+      where: { dni: dto.dni },
+    });
+
+    if (existing) {
+      throw new ConflictException(
+        `Ya existe un paciente con DNI ${dto.dni}`,
+      );
+    }
+
+    const patient = this.patientsRepository.create(dto);
+    const saved = await this.patientsRepository.save(patient);
 
     await this.auditService.log(
       user.sub,
-      'CREATED',
+      'CREATE',
       'PATIENT',
-      savedPatient.id,
+      saved.id,
     );
 
-    return savedPatient;
+    return saved;
   }
 
+  // =========================
+  // FIND ALL
+  // =========================
   async findAll(): Promise<Patient[]> {
     return this.patientsRepository.find({
-      order: { created_at: 'DESC' },
+      order: { createdAt: 'DESC' },
     });
   }
 
+  // =========================
+  // FIND ONE
+  // =========================
   async findOne(id: string): Promise<Patient> {
     const patient = await this.patientsRepository.findOne({
       where: { id },
@@ -41,20 +68,27 @@ export class PatientsService {
     });
 
     if (!patient) {
-      throw new NotFoundException(`Paciente con ID ${id} no encontrado`);
+      throw new NotFoundException(
+        `Paciente con ID ${id} no encontrado`,
+      );
     }
 
     return patient;
   }
 
+  // =========================
+  // UPDATE
+  // =========================
   async update(
     id: string,
-    updatePatientDto: UpdatePatientDto,
+    dto: UpdatePatientDto,
     user: { sub: string; email: string },
   ): Promise<Patient> {
     const patient = await this.findOne(id);
-    Object.assign(patient, updatePatientDto);
-    const updatedPatient = await this.patientsRepository.save(patient);
+
+    Object.assign(patient, dto);
+
+    const updated = await this.patientsRepository.save(patient);
 
     await this.auditService.log(
       user.sub,
@@ -63,11 +97,18 @@ export class PatientsService {
       id,
     );
 
-    return updatedPatient;
+    return updated;
   }
 
-  async remove(id: string, user: { sub: string; email: string }): Promise<void> {
+  // =========================
+  // REMOVE
+  // =========================
+  async remove(
+    id: string,
+    user: { sub: string; email: string },
+  ): Promise<void> {
     const patient = await this.findOne(id);
+
     await this.patientsRepository.remove(patient);
 
     await this.auditService.log(

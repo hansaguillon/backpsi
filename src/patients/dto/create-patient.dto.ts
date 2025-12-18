@@ -10,8 +10,9 @@ export class CreatePatientDto {
   @IsString()
   dni: string;
 
+  @IsOptional()
   @IsDateString()
-  birthDate: string;
+  birthDate?: string;
 
   @IsString()
   phone: string;

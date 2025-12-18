@@ -1,49 +1,101 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  Index,
+} from 'typeorm';
 import { Session } from '../../sessions/entities/session.entity';
 
 @Entity('patients')
+@Index('idx_dni', ['dni'])
+@Index('idx_last_name', ['lastName'])
 export class Patient {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ length: 100 })
-  first_name: string;
+  /* =======================
+     Datos personales
+     ======================= */
 
-  @Column({ length: 100 })
-  last_name: string;
+  @Column({ name: 'first_name', length: 100 })
+  firstName: string;
 
-  @Column({ unique: true, length: 20 })
+  @Column({ name: 'last_name', length: 100 })
+  lastName: string;
+
+  @Column({ length: 20, unique: true })
   dni: string;
 
-  @Column({ type: 'date' })
-  birth_date: Date;
+  @Column({
+    name: 'birth_date',
+    type: 'date',
+  })
+  birthDate: Date;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ length: 50 })
   phone: string;
 
-  @Column({ length: 255, nullable: true })
-  email: string;
+  @Column({ length: 150, nullable: true })
+  email?: string;
 
-  @Column({ type: 'date' })
-  admission_date: Date;
+  /* =======================
+     Datos de admisión
+     ======================= */
 
-  @Column({ length: 255, nullable: true })
-  referral_source: string;
+  @Column({
+    name: 'admission_date',
+    type: 'date',
+  })
+  admissionDate: Date;
 
-  @Column({ length: 20, nullable: true })
-  billing_id: string;
+  @Column({
+    name: 'referral_source',
+    length: 255,
+    nullable: true,
+  })
+  referralSource?: string;
 
-  @Column({ type: 'text', nullable: true })
-  consult_reason: string;
+  @Column({
+    name: 'billing_id',
+    length: 50,
+    nullable: true,
+  })
+  billingId?: string;
 
-  @Column({ type: 'text', nullable: true })
-  treatment_notes: string;
+  /* =======================
+     Historia clínica
+     ======================= */
 
-  @CreateDateColumn()
-  created_at: Date;
+  @Column({
+    name: 'consult_reason',
+    type: 'text',
+    nullable: true,
+  })
+  consultReason?: string;
 
-  @UpdateDateColumn()
-  updated_at: Date;
+  @Column({
+    name: 'treatment_notes',
+    type: 'text',
+    nullable: true,
+  })
+  treatmentNotes?: string;
+
+  /* =======================
+     Auditoría
+     ======================= */
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+
+  /* =======================
+     Relaciones
+     ======================= */
 
   @OneToMany(() => Session, (session) => session.patient)
   sessions: Session[];
