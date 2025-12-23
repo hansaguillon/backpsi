@@ -10,17 +10,18 @@ import { SessionsService } from '../sessions/sessions.service';
 export class AddendaService {
   constructor(
     @InjectRepository(Addendum)
-    private addendaRepository: Repository<Addendum>,
-    private auditService: AuditService,
-    private sessionsService: SessionsService,
+    private readonly addendaRepository: Repository<Addendum>,
+    private readonly auditService: AuditService,
+    private readonly sessionsService: SessionsService,
   ) {}
 
+  /* ===================== CREATE ===================== */
   async create(
     dto: CreateAddendumDto,
     userId: string,
   ): Promise<Addendum> {
-    // Verificar sesión
-    await this.sessionsService.findOne(dto.sessionId, userId);
+    // Verificar que la sesión exista y esté válida
+    await this.sessionsService.findOne(dto.sessionId);
 
     const addendum = this.addendaRepository.create({
       session_id: dto.sessionId,
@@ -33,7 +34,7 @@ export class AddendaService {
 
     await this.auditService.log(
       userId,
-      'ADDENDUM_CREATED',
+      'CREATE',
       'ADDENDUM',
       saved.id,
       'Se creó una adenda',
@@ -42,11 +43,12 @@ export class AddendaService {
     return saved;
   }
 
+  /* ===================== FIND BY SESSION ===================== */
   async findAllBySession(
     sessionId: string,
     userId: string,
   ): Promise<Addendum[]> {
-    await this.sessionsService.findOne(sessionId, userId);
+    await this.sessionsService.findOne(sessionId);
 
     return this.addendaRepository.find({
       where: { session_id: sessionId },
@@ -54,6 +56,7 @@ export class AddendaService {
     });
   }
 
+  /* ===================== FIND ONE ===================== */
   async findOne(
     id: string,
     userId: string,
@@ -64,10 +67,13 @@ export class AddendaService {
     });
 
     if (!addendum) {
-      throw new NotFoundException(`Adenda con ID ${id} no encontrada`);
+      throw new NotFoundException(
+        `Adenda con ID ${id} no encontrada`,
+      );
     }
 
-    await this.sessionsService.findOne(addendum.session_id, userId);
+    // Validar sesión asociada
+    await this.sessionsService.findOne(addendum.session_id);
 
     return addendum;
   }

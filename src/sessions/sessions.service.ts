@@ -8,115 +8,70 @@ import { Repository } from 'typeorm';
 import { Session } from './entities/session.entity';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
-import { AuditService } from '../audit/audit.service';
 import { PatientsService } from '../patients/patients.service';
 
 @Injectable()
 export class SessionsService {
-  /**
-   * Ventana legal de edición (minutos)
-   * Cambiar solo este valor si la normativa lo requiere
-   */
   private readonly EDIT_WINDOW_MINUTES = 10;
 
   constructor(
     @InjectRepository(Session)
     private readonly sessionsRepository: Repository<Session>,
-    private readonly auditService: AuditService,
     private readonly patientsService: PatientsService,
   ) {}
 
-  /* ======================================================
-   * CREATE
-   * ====================================================== */
-  async create(
-    createSessionDto: CreateSessionDto,
-    userId: string,
-  ): Promise<Session> {
-    // Verificar que el paciente exista
-    await this.patientsService.findOne(createSessionDto.patientId);
+  /* ===================== CREATE ===================== */
+  async create(dto: CreateSessionDto): Promise<Session> {
+    await this.patientsService.findOne(dto.patientId);
 
     const session = this.sessionsRepository.create({
-      content: createSessionDto.content,
-      important_events: createSessionDto.importantEvents,
-      attachments: createSessionDto.attachments,
-      patient_id: createSessionDto.patientId,
+      patientId: dto.patientId,
+      content: dto.content,
+      importantEvents: dto.importantEvents,
+      attachments: dto.attachments ?? [],
       is_locked: false,
-      // created_at y locked_at se manejan automáticamente
     });
 
-    const savedSession = await this.sessionsRepository.save(session);
-
-    await this.auditService.log(
-      userId,
-      'SESSION_CREATED',
-      'SESSION',
-      savedSession.id,
-      'Creación de sesión clínica',
-    );
-
-    return savedSession;
+    return this.sessionsRepository.save(session);
   }
 
-  /* ======================================================
-   * FIND ALL BY PATIENT
-   * ====================================================== */
-  async findAllByPatient(
-    patientId: string,
-    userId: string,
-  ): Promise<Session[]> {
+  /* ===================== FIND BY PATIENT ===================== */
+  async findAllByPatient(patientId: string): Promise<Session[]> {
     await this.patientsService.findOne(patientId);
 
     return this.sessionsRepository.find({
-      where: { patient_id: patientId },
+      where: { patientId },
       relations: ['addenda'],
       order: { created_at: 'DESC' },
     });
   }
 
-  /* ======================================================
-   * FIND ONE
-   * ====================================================== */
-  async findOne(id: string, userId: string): Promise<Session> {
+  /* ===================== FIND ONE ===================== */
+  async findOne(id: string): Promise<Session> {
     const session = await this.sessionsRepository.findOne({
       where: { id },
-      relations: ['patient', 'addenda'],
+      relations: ['addenda', 'patient'],
     });
 
     if (!session) {
-      throw new NotFoundException(`Sesión con ID ${id} no encontrada`);
+      throw new NotFoundException('Sesión no encontrada');
     }
 
-    // Verificar que el paciente exista
-    await this.patientsService.findOne(session.patient_id);
-
-    // Auto-lock si venció la ventana legal
     await this.checkAndLockSession(session);
-
-    await this.auditService.log(
-      userId,
-      'SESSION_ACCESSED',
-      'SESSION',
-      id,
-      'Acceso a sesión clínica',
-    );
 
     return session;
   }
 
-  /* ======================================================
-   * UPDATE
-   * ====================================================== */
+  /* ===================== UPDATE ===================== */
   async update(
     id: string,
-    updateSessionDto: UpdateSessionDto,
-    userId: string,
+    dto: UpdateSessionDto,
   ): Promise<Session> {
-    const session = await this.findOne(id, userId);
+    const session = await this.findOne(id);
 
     if (session.is_locked) {
       throw new ForbiddenException(
-        'La sesión está bloqueada y no puede ser editada. Use una adenda.',
+        'Sesión bloqueada. Use una adenda.',
       );
     }
 
@@ -126,62 +81,34 @@ export class SessionsService {
       await this.sessionsRepository.save(session);
 
       throw new ForbiddenException(
-        'La ventana de edición ha expirado. Use una adenda.',
+        'Ventana de edición expirada. Use una adenda.',
       );
     }
 
-    Object.assign(session, {
-      content: updateSessionDto.content ?? session.content,
-      important_events:
-        updateSessionDto.importantEvents ?? session.important_events,
-      attachments:
-        updateSessionDto.attachments ?? session.attachments,
-    });
+    session.content = dto.content ?? session.content;
+    session.importantEvents =
+      dto.importantEvents ?? session.importantEvents;
+    session.attachments =
+      dto.attachments ?? session.attachments;
 
-    const updatedSession = await this.sessionsRepository.save(session);
-
-    await this.auditService.log(
-      userId,
-      'SESSION_UPDATED',
-      'SESSION',
-      id,
-      'Edición dentro de ventana permitida',
-    );
-
-    return updatedSession;
+    return this.sessionsRepository.save(session);
   }
 
-  /* ======================================================
-   * MANUAL LOCK
-   * ====================================================== */
-  async lockSession(id: string, userId: string): Promise<Session> {
-    const session = await this.findOne(id, userId);
+  /* ===================== LOCK ===================== */
+  async lockSession(id: string): Promise<Session> {
+    const session = await this.findOne(id);
 
     if (!session.is_locked) {
       session.is_locked = true;
       session.locked_at = new Date();
       await this.sessionsRepository.save(session);
-
-      await this.auditService.log(
-        userId,
-        'SESSION_LOCKED',
-        'SESSION',
-        id,
-        'Bloqueo manual de sesión',
-      );
     }
 
     return session;
   }
 
-  /* ======================================================
-   * PRIVATE HELPERS
-   * ====================================================== */
-
-  /**
-   * Bloquea la sesión automáticamente si expiró la ventana legal
-   */
-  private async checkAndLockSession(session: Session): Promise<void> {
+  /* ===================== HELPERS ===================== */
+  private async checkAndLockSession(session: Session) {
     if (session.is_locked) return;
 
     if (this.isEditWindowExpired(session)) {
@@ -191,9 +118,6 @@ export class SessionsService {
     }
   }
 
-  /**
-   * Determina si la ventana de edición expiró
-   */
   private isEditWindowExpired(session: Session): boolean {
     const expiresAt =
       new Date(session.created_at).getTime() +

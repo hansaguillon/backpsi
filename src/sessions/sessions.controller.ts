@@ -2,61 +2,47 @@ import {
   Controller,
   Get,
   Post,
-  Body,
   Patch,
   Param,
-  UseGuards,
-  Request,
+  Body,
 } from '@nestjs/common';
 import { SessionsService } from './sessions.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('sessions')
-@UseGuards(JwtAuthGuard)
 export class SessionsController {
-  constructor(private readonly sessionsService: SessionsService) {}
+  constructor(
+    private readonly sessionsService: SessionsService,
+  ) {}
 
   @Post()
-  create(@Body() createSessionDto: CreateSessionDto, @Request() req) {
-    return this.sessionsService.create(
-      createSessionDto,
-      req.user.sub,
-    );
+  create(@Body() dto: CreateSessionDto) {
+    return this.sessionsService.create(dto);
   }
 
   @Get('patient/:patientId')
   findAllByPatient(
     @Param('patientId') patientId: string,
-    @Request() req,
   ) {
-    return this.sessionsService.findAllByPatient(
-      patientId,
-      req.user.sub,
-    );
+    return this.sessionsService.findAllByPatient(patientId);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string, @Request() req) {
-    return this.sessionsService.findOne(id, req.user.sub);
+  findOne(@Param('id') id: string) {
+    return this.sessionsService.findOne(id);
   }
 
   @Patch(':id')
   update(
     @Param('id') id: string,
-    @Body() updateSessionDto: UpdateSessionDto,
-    @Request() req,
+    @Body() dto: UpdateSessionDto,
   ) {
-    return this.sessionsService.update(
-      id,
-      updateSessionDto,
-      req.user.sub,
-    );
+    return this.sessionsService.update(id, dto);
   }
 
-  @Patch(':id/lock')
-  lockSession(@Param('id') id: string, @Request() req) {
-    return this.sessionsService.lockSession(id, req.user.sub);
+  @Post(':id/lock')
+  lock(@Param('id') id: string) {
+    return this.sessionsService.lockSession(id);
   }
 }
