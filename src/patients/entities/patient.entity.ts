@@ -84,6 +84,31 @@ export class Patient {
   treatmentNotes?: string;
 
   /* =======================
+   Estado del paciente
+   ======================= */
+
+@Column({
+  type: 'enum',
+  enum: ['active', 'inactive'],
+  default: 'active',
+})
+status: 'active' | 'inactive';
+
+@Column({
+  name: 'discharge_date',
+  type: 'date',
+  nullable: true,
+})
+dischargeDate?: Date;
+
+@Column({
+  name: 'discharge_reason',
+  length: 255,
+  nullable: true,
+})
+dischargeReason?: string;
+
+  /* =======================
      Auditoría
      ======================= */
 

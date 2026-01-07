@@ -16,10 +16,16 @@ export class SessionsController {
     private readonly sessionsService: SessionsService,
   ) {}
 
+  @Get()
+findAll() {
+  return this.sessionsService.findAll();
+}
+
   @Post()
   create(@Body() dto: CreateSessionDto) {
     return this.sessionsService.create(dto);
   }
+
 
   @Get('patient/:patientId')
   findAllByPatient(

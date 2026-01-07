@@ -10,6 +10,7 @@ import {
   Request,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { PatientsService } from './patients.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
@@ -25,7 +26,7 @@ export class PatientsController {
   // CREATE
   // =========================
   @Post()
-  @HttpCode(HttpStatus.CREATED) // 201
+  @HttpCode(HttpStatus.CREATED)
   create(
     @Body() dto: CreatePatientDto,
     @Request() req,
@@ -37,16 +38,16 @@ export class PatientsController {
   // FIND ALL
   // =========================
   @Get()
-  @HttpCode(HttpStatus.OK) // 200
-  findAll() {
-    return this.patientsService.findAll();
+  @HttpCode(HttpStatus.OK)
+  findAll(@Query('status') status?: 'active' | 'inactive') {
+    return this.patientsService.findAll(status);
   }
 
   // =========================
   // FIND ONE
   // =========================
   @Get(':id')
-  @HttpCode(HttpStatus.OK) // 200
+  @HttpCode(HttpStatus.OK)
   findOne(@Param('id') id: string) {
     return this.patientsService.findOne(id);
   }
@@ -55,7 +56,7 @@ export class PatientsController {
   // UPDATE
   // =========================
   @Patch(':id')
-  @HttpCode(HttpStatus.OK) // 200
+  @HttpCode(HttpStatus.OK)
   update(
     @Param('id') id: string,
     @Body() dto: UpdatePatientDto,
@@ -68,7 +69,7 @@ export class PatientsController {
   // DELETE
   // =========================
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT) // 204
+  @HttpCode(HttpStatus.NO_CONTENT)
   async remove(
     @Param('id') id: string,
     @Request() req,

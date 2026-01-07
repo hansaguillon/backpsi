@@ -35,6 +35,16 @@ export class SessionsService {
     return this.sessionsRepository.save(session);
   }
 
+  async findAll(): Promise<Session[]> {
+  return this.sessionsRepository
+    .createQueryBuilder('session')
+    .innerJoinAndSelect('session.patient', 'patient')
+    .leftJoinAndSelect('session.addenda', 'addenda')
+    .where('patient.status = :status', { status: 'active' })
+    .orderBy('session.created_at', 'DESC')
+    .getMany();
+}
+
   /* ===================== FIND BY PATIENT ===================== */
   async findAllByPatient(patientId: string): Promise<Session[]> {
     await this.patientsService.findOne(patientId);

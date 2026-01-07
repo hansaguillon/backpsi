@@ -25,7 +25,6 @@ export class PatientsService {
     dto: CreatePatientDto,
     user: { sub: string; email: string },
   ): Promise<Patient> {
-    // 🔍 Validar DNI duplicado
     const existing = await this.patientsRepository.findOne({
       where: { dni: dto.dni },
     });
@@ -36,7 +35,11 @@ export class PatientsService {
       );
     }
 
-    const patient = this.patientsRepository.create(dto);
+    const patient = this.patientsRepository.create({
+      ...dto,
+      status: 'active',
+    });
+
     const saved = await this.patientsRepository.save(patient);
 
     await this.auditService.log(
@@ -52,8 +55,11 @@ export class PatientsService {
   // =========================
   // FIND ALL
   // =========================
-  async findAll(): Promise<Patient[]> {
+  async findAll(
+    status?: 'active' | 'inactive',
+  ): Promise<Patient[]> {
     return this.patientsRepository.find({
+      where: status ? { status } : {},
       order: { createdAt: 'DESC' },
     });
   }
@@ -85,6 +91,17 @@ export class PatientsService {
     user: { sub: string; email: string },
   ): Promise<Patient> {
     const patient = await this.findOne(id);
+
+    if (dto.status === 'inactive' && !dto.dischargeDate) {
+      throw new ConflictException(
+        'Para dar de baja un paciente se requiere la fecha de egreso',
+      );
+    }
+
+    if (dto.status === 'active') {
+      patient.dischargeDate = undefined;
+      patient.dischargeReason = undefined;
+    }
 
     Object.assign(patient, dto);
 
