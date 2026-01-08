@@ -9,6 +9,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:8081', // Vite
+      'http://localhost:8080', // Vite
       'http://localhost:3000', // Opcional si accedés directo
     ],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
