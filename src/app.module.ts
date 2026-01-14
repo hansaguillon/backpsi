@@ -10,6 +10,7 @@ import { PatientsModule } from './patients/patients.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { AuditModule } from './audit/audit.module';
 import { AddendaModule } from './addenda/addenda.module';
+import { BackupModule } from './backup/backup.module';
 
 @Module({
   imports: [
@@ -24,8 +25,11 @@ import { AddendaModule } from './addenda/addenda.module';
       autoLoadEntities: true, // 🔑 MUY IMPORTANTE
       synchronize: false,     // correcto para sistema clínico
       logging: true,
+      extra: {
+    connectTimeout: 10000,
+     },
     }),
-
+    BackupModule,
     AuthModule,
     UsersModule,
     PatientsModule,
