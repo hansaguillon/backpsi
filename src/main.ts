@@ -2,24 +2,25 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 
-
 async function bootstrap() {
-
   const app = await NestFactory.create(AppModule);
+
+  // CORS solo para localhost (seguro y simple)
   app.enableCors({
-    origin: [
-      'http://localhost:8081', // Vite
-      'http://localhost:8080', // Vite
-      'http://localhost:3000', // Opcional si accedés directo
-    ],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-    ],
+    origin: ['http://localhost:3000'],
     credentials: true,
   });
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
-  await app.listen(process.env.PORT ?? 3000);
+
+  // Validaciones globales
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
+
+  // Puerto fijo local
+  await app.listen(3000);
 }
 bootstrap();
