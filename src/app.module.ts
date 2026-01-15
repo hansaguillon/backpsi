@@ -11,6 +11,7 @@ import { PatientsModule } from './patients/patients.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { AuditModule } from './audit/audit.module';
 import { AddendaModule } from './addenda/addenda.module';
+import { BackupModule } from './backup/backup.module';
 
 @Module({
   imports: [
@@ -31,9 +32,13 @@ import { AddendaModule } from './addenda/addenda.module';
       autoLoadEntities: true,
       synchronize: false,
       logging: true,
+      extra: {
+    connectTimeout: 10000,
+     },
     }),
 
-    // 🔹 MÓDULOS DE LA APP
+    // 🔹 MÓDULOS DE LA APp
+    BackupModule,
     AuthModule,
     UsersModule,
     PatientsModule,
