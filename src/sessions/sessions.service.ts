@@ -9,6 +9,7 @@ import { Session } from './entities/session.entity';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
 import { PatientsService } from '../patients/patients.service';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class SessionsService {
@@ -21,29 +22,67 @@ export class SessionsService {
   ) {}
 
   /* ===================== CREATE ===================== */
-  async create(dto: CreateSessionDto): Promise<Session> {
+  async create(
+    dto: CreateSessionDto,
+    user: User,
+  ): Promise<Session> {
     await this.patientsService.findOne(dto.patientId);
+
+    /* =====================
+       Limpieza por rol
+       ===================== */
+
+    if (user.role === 'psychologist') {
+      dto.vitalSigns = undefined;
+      dto.prescription = undefined;
+      dto.diagnosis = undefined;
+      dto.studies = undefined;
+      dto.kinesicPlan = undefined;
+      dto.evolution = undefined;
+    }
+
+    if (user.role === 'doctor') {
+      dto.kinesicPlan = undefined;
+      dto.evolution = undefined;
+    }
+
+    if (user.role === 'kinesiologist') {
+      dto.diagnosis = undefined;
+      dto.prescription = undefined;
+      dto.studies = undefined;
+      dto.vitalSigns = undefined;
+    }
 
     const session = this.sessionsRepository.create({
       patientId: dto.patientId,
       content: dto.content,
       importantEvents: dto.importantEvents,
-      attachments: dto.attachments ?? [],
-      is_locked: false,
+      attachments: dto.attachments ?? null,
+
+      vitalSigns: dto.vitalSigns,
+      diagnosis: dto.diagnosis,
+      prescription: dto.prescription,
+      studies: dto.studies,
+
+      kinesicPlan: dto.kinesicPlan,
+      evolution: dto.evolution,
+
+      isLocked: false,
     });
 
     return this.sessionsRepository.save(session);
   }
 
+  /* ===================== FIND ALL ===================== */
   async findAll(): Promise<Session[]> {
-  return this.sessionsRepository
-    .createQueryBuilder('session')
-    .innerJoinAndSelect('session.patient', 'patient')
-    .leftJoinAndSelect('session.addenda', 'addenda')
-    .where('patient.status = :status', { status: 'active' })
-    .orderBy('session.created_at', 'DESC')
-    .getMany();
-}
+    return this.sessionsRepository
+      .createQueryBuilder('session')
+      .innerJoinAndSelect('session.patient', 'patient')
+      .leftJoinAndSelect('session.addenda', 'addenda')
+      .where('patient.status = :status', { status: 'active' })
+      .orderBy('session.createdAt', 'DESC')
+      .getMany();
+  }
 
   /* ===================== FIND BY PATIENT ===================== */
   async findAllByPatient(patientId: string): Promise<Session[]> {
@@ -52,7 +91,7 @@ export class SessionsService {
     return this.sessionsRepository.find({
       where: { patientId },
       relations: ['addenda'],
-      order: { created_at: 'DESC' },
+      order: { createdAt: 'DESC' },
     });
   }
 
@@ -67,7 +106,7 @@ export class SessionsService {
       throw new NotFoundException('Sesión no encontrada');
     }
 
-    await this.checkAndLockSession(session);
+    await this.autoLockIfExpired(session);
 
     return session;
   }
@@ -79,16 +118,14 @@ export class SessionsService {
   ): Promise<Session> {
     const session = await this.findOne(id);
 
-    if (session.is_locked) {
+    if (session.isLocked) {
       throw new ForbiddenException(
         'Sesión bloqueada. Use una adenda.',
       );
     }
 
     if (this.isEditWindowExpired(session)) {
-      session.is_locked = true;
-      session.locked_at = new Date();
-      await this.sessionsRepository.save(session);
+      await this.lock(session);
 
       throw new ForbiddenException(
         'Ventana de edición expirada. Use una adenda.',
@@ -107,30 +144,31 @@ export class SessionsService {
   /* ===================== LOCK ===================== */
   async lockSession(id: string): Promise<Session> {
     const session = await this.findOne(id);
-
-    if (!session.is_locked) {
-      session.is_locked = true;
-      session.locked_at = new Date();
-      await this.sessionsRepository.save(session);
-    }
-
-    return session;
+    return this.lock(session);
   }
 
   /* ===================== HELPERS ===================== */
-  private async checkAndLockSession(session: Session) {
-    if (session.is_locked) return;
+
+  private async lock(session: Session): Promise<Session> {
+    if (!session.isLocked) {
+      session.isLocked = true;
+      session.lockedAt = new Date();
+      return this.sessionsRepository.save(session);
+    }
+    return session;
+  }
+
+  private async autoLockIfExpired(session: Session) {
+    if (session.isLocked) return;
 
     if (this.isEditWindowExpired(session)) {
-      session.is_locked = true;
-      session.locked_at = new Date();
-      await this.sessionsRepository.save(session);
+      await this.lock(session);
     }
   }
 
   private isEditWindowExpired(session: Session): boolean {
     const expiresAt =
-      new Date(session.created_at).getTime() +
+      new Date(session.createdAt).getTime() +
       this.EDIT_WINDOW_MINUTES * 60_000;
 
     return Date.now() > expiresAt;

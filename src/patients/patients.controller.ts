@@ -68,12 +68,12 @@ export class PatientsController {
   // =========================
   // DELETE
   // =========================
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(
-    @Param('id') id: string,
-    @Request() req,
-  ) {
-    await this.patientsService.remove(id, req.user);
-  }
+  // @Delete(':id')
+  // @HttpCode(HttpStatus.NO_CONTENT)
+  // async remove(
+  //   @Param('id') id: string,
+  //   @Request() req,
+  // ) {
+  //   await this.patientsService.remove(id, req.user);
+  // }
 }

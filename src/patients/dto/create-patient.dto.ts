@@ -1,25 +1,38 @@
-import { IsString, IsOptional, IsEmail, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEmail,
+  IsDateString,
+  IsNotEmpty,
+} from 'class-validator';
 
 export class CreatePatientDto {
   @IsString()
+  @IsNotEmpty()
   firstName: string;
 
   @IsString()
+  @IsNotEmpty()
   lastName: string;
 
   @IsString()
+  @IsNotEmpty()
   dni: string;
 
-  @IsOptional()
   @IsDateString()
-  birthDate?: string;
+  birthDate: string;
 
   @IsString()
+  @IsNotEmpty()
   phone: string;
 
   @IsOptional()
   @IsEmail()
   email?: string;
+
+  /* =====================
+     Datos de admisión
+     ===================== */
 
   @IsDateString()
   admissionDate: string;
@@ -31,6 +44,10 @@ export class CreatePatientDto {
   @IsOptional()
   @IsString()
   billingId?: string;
+
+  /* =====================
+     Motivo / tratamiento
+     ===================== */
 
   @IsOptional()
   @IsString()

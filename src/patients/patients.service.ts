@@ -4,7 +4,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+  import { Repository } from 'typeorm';
 import { Patient } from './entities/patient.entity';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
@@ -23,7 +23,7 @@ export class PatientsService {
   // =========================
   async create(
     dto: CreatePatientDto,
-    user: { sub: string; email: string },
+    user: { sub: string },
   ): Promise<Patient> {
     const existing = await this.patientsRepository.findOne({
       where: { dni: dto.dni },
@@ -88,7 +88,7 @@ export class PatientsService {
   async update(
     id: string,
     dto: UpdatePatientDto,
-    user: { sub: string; email: string },
+    user: { sub: string },
   ): Promise<Patient> {
     const patient = await this.findOne(id);
 
@@ -118,21 +118,29 @@ export class PatientsService {
   }
 
   // =========================
-  // REMOVE
+  // DISCHARGE (BAJA CLÍNICA)
   // =========================
-  async remove(
+  async discharge(
     id: string,
-    user: { sub: string; email: string },
-  ): Promise<void> {
+    dischargeDate: string,
+    dischargeReason: string,
+    user: { sub: string },
+  ): Promise<Patient> {
     const patient = await this.findOne(id);
 
-    await this.patientsRepository.remove(patient);
+    patient.status = 'inactive';
+    patient.dischargeDate = new Date(dischargeDate);
+    patient.dischargeReason = dischargeReason;
+
+    const saved = await this.patientsRepository.save(patient);
 
     await this.auditService.log(
       user.sub,
-      'DELETE',
+      'EDIT',
       'PATIENT',
       id,
     );
+
+    return saved;
   }
 }

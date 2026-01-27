@@ -103,7 +103,7 @@ dischargeDate?: Date;
 
 @Column({
   name: 'discharge_reason',
-  length: 255,
+  length: 500,
   nullable: true,
 })
 dischargeReason?: string;

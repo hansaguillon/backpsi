@@ -1,7 +1,11 @@
-import { IsString, IsOptional, IsArray } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsUUID,
+} from 'class-validator';
 
 export class CreateSessionDto {
-  @IsString()
+  @IsUUID()
   patientId: string;
 
   @IsString()
@@ -11,7 +15,40 @@ export class CreateSessionDto {
   @IsString()
   importantEvents?: string;
 
+  /* =====================
+     Adjuntos
+     ===================== */
+
   @IsOptional()
-  @IsArray()
-  attachments?: string[];
+  attachments?: any;
+
+  /* =====================
+     Campos médicos
+     ===================== */
+
+  @IsOptional()
+  vitalSigns?: any;
+
+  @IsOptional()
+  @IsString()
+  diagnosis?: string;
+
+  @IsOptional()
+  @IsString()
+  prescription?: string;
+
+  @IsOptional()
+  @IsString()
+  studies?: string;
+
+  /* =====================
+     Kinesiología
+     ===================== */
+
+  @IsOptional()
+  kinesicPlan?: any;
+
+  @IsOptional()
+  @IsString()
+  evolution?: string;
 }

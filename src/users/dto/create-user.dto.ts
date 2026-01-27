@@ -1,5 +1,4 @@
-// src/users/dto/create-user.dto.ts
-import { IsString, MinLength } from 'class-validator';
+import { IsString, MinLength, IsOptional, IsIn } from 'class-validator';
 
 export class CreateUserDto {
   @IsString()
@@ -11,5 +10,8 @@ export class CreateUserDto {
 
   @IsString()
   name: string;
-}
 
+  @IsOptional()
+  @IsIn(['psychologist', 'doctor', 'kinesiologist'])
+  role?: 'psychologist' | 'doctor' | 'kinesiologist';
+}

@@ -1,6 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+} from 'typeorm';
 import { AuditLog } from '../../audit/entities/audit.entity';
 import { Addendum } from '../../addenda/entities/addendum.entity';
+
+export type UserRole = 'psychologist' | 'doctor' | 'kinesiologist';
 
 @Entity('users')
 export class User {
@@ -10,23 +19,27 @@ export class User {
   @Column({ unique: true, length: 100 })
   username: string;
 
-  @Column({ length: 255 })
+  @Column({ name: 'password_hash', length: 255 })
   password_hash: string;
 
   @Column({ length: 200 })
   name: string;
 
-  @Column({ type: 'enum', enum: ['psychologist'], default: 'psychologist' })
-  role: string;
+  @Column({
+    type: 'enum',
+    enum: ['psychologist', 'doctor', 'kinesiologist'],
+    default: 'psychologist',
+  })
+  role: UserRole;
 
-  @Column({ type: 'timestamp', nullable: true })
-  last_login: Date;
+  @Column({ name: 'last_login', type: 'datetime', nullable: true })
+  last_login?: Date;
 
-  @CreateDateColumn()
-  created_at: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
 
-  @UpdateDateColumn()
-  updated_at: Date;
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
 
   @OneToMany(() => AuditLog, (audit) => audit.user)
   auditLogs: AuditLog[];
