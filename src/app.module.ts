@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
-import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 import { AuthModule } from './auth/auth.module';
@@ -14,6 +15,12 @@ import { BackupModule } from './backup/backup.module';
 
 @Module({
   imports: [
+    // 🔹 FRONTEND (React build)
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+    }),
+
+    // 🔹 BASE DE DATOS
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
@@ -22,13 +29,15 @@ import { BackupModule } from './backup/backup.module';
       password: 'juan2983A!',
       database: 'clinical_db',
 
-      autoLoadEntities: true, // 🔑 MUY IMPORTANTE
-      synchronize: false,     // correcto para sistema clínico
+      autoLoadEntities: true,
+      synchronize: false,
       logging: true,
       extra: {
     connectTimeout: 10000,
      },
     }),
+
+    // 🔹 MÓDULOS DE LA APp
     BackupModule,
     AuthModule,
     UsersModule,
@@ -37,7 +46,7 @@ import { BackupModule } from './backup/backup.module';
     AuditModule,
     AddendaModule,
   ],
-  controllers: [AppController],
+  controllers: [],
   providers: [AppService],
 })
 export class AppModule {}
