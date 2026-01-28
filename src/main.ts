@@ -7,7 +7,10 @@ async function bootstrap() {
 
   // CORS solo para localhost (seguro y simple)
   app.enableCors({
-    origin: ['http://localhost:3000'],
+    origin: [
+    'http://localhost:3000', // Front principal
+    'http://localhost:8081', // Front de prueba
+  ],
     credentials: true,
   });
 
