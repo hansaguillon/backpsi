@@ -12,6 +12,8 @@ import { SessionsModule } from './sessions/sessions.module';
 import { AuditModule } from './audit/audit.module';
 import { AddendaModule } from './addenda/addenda.module';
 import { BackupModule } from './backup/backup.module';
+import { SessionAttachmentsModule } from './session-attachments/session-attachments.module';
+import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
   imports: [
@@ -44,7 +46,9 @@ import { BackupModule } from './backup/backup.module';
     PatientsModule,
     SessionsModule,
     AuditModule,
+    UploadsModule,
     AddendaModule,
+    SessionAttachmentsModule,
   ],
   controllers: [],
   providers: [AppService],

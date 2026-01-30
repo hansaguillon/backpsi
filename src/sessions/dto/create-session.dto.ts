@@ -19,8 +19,7 @@ export class CreateSessionDto {
      Adjuntos
      ===================== */
 
-  @IsOptional()
-  attachments?: any;
+
 
   /* =====================
      Campos médicos

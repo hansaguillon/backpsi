@@ -10,23 +10,35 @@ import {
 } from 'typeorm';
 import { Patient } from '../../patients/entities/patient.entity';
 import { Addendum } from '../../addenda/entities/addendum.entity';
+import { SessionAttachment } from '../../session-attachments/entities/session-attachment.entity';
 
 @Entity('sessions')
 export class Session {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  /* =======================
+     Relación paciente
+     ======================= */
+
   @Column('uuid', { name: 'patient_id' })
   patientId: string;
+
+  @ManyToOne(() => Patient, (patient) => patient.sessions, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'patient_id' })
+  patient: Patient;
+
+  /* =======================
+     Contenido clínico
+     ======================= */
 
   @Column('text')
   content: string;
 
   @Column({ name: 'important_events', type: 'text', nullable: true })
   importantEvents?: string;
-
-  @Column({ type: 'json', nullable: true })
-  attachments?: any;
 
   /* =======================
      Campos médicos
@@ -78,12 +90,15 @@ export class Session {
      Relaciones
      ======================= */
 
-  @ManyToOne(() => Patient, (patient) => patient.sessions, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'patient_id' })
-  patient: Patient;
-
-  @OneToMany(() => Addendum, (addendum) => addendum.session)
+  @OneToMany(
+    () => Addendum,
+    (addendum) => addendum.session,
+  )
   addenda: Addendum[];
+
+  @OneToMany(
+    () => SessionAttachment,
+    (attachment) => attachment.session,
+  )
+  attachments: SessionAttachment[];
 }

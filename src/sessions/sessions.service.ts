@@ -28,10 +28,7 @@ export class SessionsService {
   ): Promise<Session> {
     await this.patientsService.findOne(dto.patientId);
 
-    /* =====================
-       Limpieza por rol
-       ===================== */
-
+    /* Limpieza por rol */
     if (user.role === 'psychologist') {
       dto.vitalSigns = undefined;
       dto.prescription = undefined;
@@ -57,7 +54,6 @@ export class SessionsService {
       patientId: dto.patientId,
       content: dto.content,
       importantEvents: dto.importantEvents,
-      attachments: dto.attachments ?? null,
 
       vitalSigns: dto.vitalSigns,
       diagnosis: dto.diagnosis,
@@ -126,7 +122,6 @@ export class SessionsService {
 
     if (this.isEditWindowExpired(session)) {
       await this.lock(session);
-
       throw new ForbiddenException(
         'Ventana de edición expirada. Use una adenda.',
       );
@@ -135,8 +130,6 @@ export class SessionsService {
     session.content = dto.content ?? session.content;
     session.importantEvents =
       dto.importantEvents ?? session.importantEvents;
-    session.attachments =
-      dto.attachments ?? session.attachments;
 
     return this.sessionsRepository.save(session);
   }
