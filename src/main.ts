@@ -9,12 +9,9 @@ async function bootstrap() {
 
   // CORS solo para localhost (seguro y simple)
   app.enableCors({
-    origin: [
-    'http://localhost:3000', // Front principal
-    'http://localhost:8081', // Front de prueba
-  ],
-    credentials: true,
-  });
+  origin: true,  // acepta cualquier origen (tu PC, tablet, etc.)
+  credentials: true,
+});
   app.useStaticAssets(join(__dirname, '..', 'uploads'), { prefix: '/uploads' });
 
   // Validaciones globales
@@ -27,6 +24,6 @@ async function bootstrap() {
   );
 
   // Puerto fijo local
-  await app.listen(3000);
+  await app.listen(3000, '0.0.0.0');
 }
 bootstrap();
