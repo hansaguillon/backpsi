@@ -10,7 +10,7 @@ async function bootstrap() {
 
   const uploadsPath = join(process.cwd(), 'uploads');
 
-  console.log('📂 Sirviendo uploads desde:', uploadsPath);
+
 
   app.use('/uploads', express.static(uploadsPath));
 
