@@ -111,6 +111,7 @@ export class SessionsService {
   async update(
     id: string,
     dto: UpdateSessionDto,
+    user: { sub: string; role: string },
   ): Promise<Session> {
     const session = await this.findOne(id);
 
@@ -127,9 +128,36 @@ export class SessionsService {
       );
     }
 
+    /* Misma limpieza por rol que en create() */
+    if (user.role === 'psychologist') {
+      dto.vitalSigns = undefined;
+      dto.prescription = undefined;
+      dto.diagnosis = undefined;
+      dto.studies = undefined;
+      dto.kinesicPlan = undefined;
+      dto.evolution = undefined;
+    }
+
+    if (user.role === 'doctor') {
+      dto.kinesicPlan = undefined;
+      dto.evolution = undefined;
+    }
+
+    if (user.role === 'kinesiologist') {
+      dto.diagnosis = undefined;
+      dto.prescription = undefined;
+      dto.studies = undefined;
+      dto.vitalSigns = undefined;
+    }
+
     session.content = dto.content ?? session.content;
-    session.importantEvents =
-      dto.importantEvents ?? session.importantEvents;
+    session.importantEvents = dto.importantEvents ?? session.importantEvents;
+    session.vitalSigns = dto.vitalSigns ?? session.vitalSigns;
+    session.diagnosis = dto.diagnosis ?? session.diagnosis;
+    session.prescription = dto.prescription ?? session.prescription;
+    session.studies = dto.studies ?? session.studies;
+    session.kinesicPlan = dto.kinesicPlan ?? session.kinesicPlan;
+    session.evolution = dto.evolution ?? session.evolution;
 
     return this.sessionsRepository.save(session);
   }

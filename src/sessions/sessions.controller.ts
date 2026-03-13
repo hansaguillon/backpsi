@@ -71,8 +71,9 @@ export class SessionsController {
   update(
     @Param('id') id: string,
     @Body() dto: UpdateSessionDto,
+    @Request() req,
   ) {
-    return this.sessionsService.update(id, dto);
+    return this.sessionsService.update(id, dto, req.user);
   }
 
   /* =====================

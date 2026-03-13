@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Addendum } from './entities/addendum.entity';
@@ -20,8 +20,13 @@ export class AddendaService {
     dto: CreateAddendumDto,
     userId: string,
   ): Promise<Addendum> {
-    // Verificar que la sesión exista y esté válida
-    await this.sessionsService.findOne(dto.sessionId);
+    const session = await this.sessionsService.findOne(dto.sessionId);
+
+    if (!session.isLocked) {
+      throw new ForbiddenException(
+        'Solo se pueden crear adendas en sesiones bloqueadas.',
+      );
+    }
 
     const addendum = this.addendaRepository.create({
       session_id: dto.sessionId,
