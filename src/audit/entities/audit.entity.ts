@@ -22,7 +22,7 @@ export class AuditLog {
   user_id: string;
 
   @Column({ length: 45, nullable: true })
-  ip_address: string;
+  ip_address?: string;
 
   @CreateDateColumn()
   timestamp: Date;

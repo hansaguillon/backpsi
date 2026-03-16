@@ -16,6 +16,7 @@ import { AddendaModule } from './addenda/addenda.module';
 import { BackupModule } from './backup/backup.module';
 import { SessionAttachmentsModule } from './session-attachments/session-attachments.module';
 import { UploadsModule } from './uploads/uploads.module';
+import { ExercisePlansModule } from './exercise-plans/exercise-plans.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { UploadsModule } from './uploads/uploads.module';
     UploadsModule,
     AddendaModule,
     SessionAttachmentsModule,
+    ExercisePlansModule,
   ],
   controllers: [],
   providers: [AppService],

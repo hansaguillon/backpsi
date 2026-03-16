@@ -34,8 +34,12 @@ export class BackupService implements OnModuleInit {
     const filename = `backup-${timestamp}.sql.gz`;
     const filepath = path.join(this.backupDir, filename);
 
-    const { host, port, user, password, database, mysqldumpPath } =
-      BACKUP_CONFIG.mysql;
+    const host     = process.env.DB_HOST     ?? BACKUP_CONFIG.mysql.host;
+    const port     = process.env.DB_PORT     ?? BACKUP_CONFIG.mysql.port;
+    const user     = process.env.DB_USER     ?? BACKUP_CONFIG.mysql.user;
+    const password = process.env.DB_PASSWORD ?? BACKUP_CONFIG.mysql.password;
+    const database = process.env.DB_NAME     ?? BACKUP_CONFIG.mysql.database;
+    const mysqldumpPath = process.env.MYSQLDUMP_PATH ?? BACKUP_CONFIG.mysql.mysqldumpPath;
 
     const command = `"${mysqldumpPath}" -h ${host} -P ${port} -u ${user} -p${password} ${database} | gzip > "${filepath}"`;
 

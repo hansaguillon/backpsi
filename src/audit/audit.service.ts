@@ -24,7 +24,7 @@ async log(
     entity_type: entityType,
     entity_id: entityId,
     details: details ?? '',
-    ip_address: ip ?? null,
+    ip_address: ip ?? undefined,
   });
 
   return this.auditRepository.save(auditLog);
