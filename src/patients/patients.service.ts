@@ -57,11 +57,16 @@ export class PatientsService {
   // =========================
   async findAll(
     status?: 'active' | 'inactive',
-  ): Promise<Patient[]> {
-    return this.patientsRepository.find({
+    page = 1,
+    limit = 50,
+  ): Promise<{ data: Patient[]; total: number }> {
+    const [data, total] = await this.patientsRepository.findAndCount({
       where: status ? { status } : {},
       order: { createdAt: 'DESC' },
+      take: limit,
+      skip: (page - 1) * limit,
     });
+    return { data, total };
   }
 
   // =========================
@@ -70,7 +75,6 @@ export class PatientsService {
   async findOne(id: string): Promise<Patient> {
     const patient = await this.patientsRepository.findOne({
       where: { id },
-      relations: ['sessions'],
     });
 
     if (!patient) {

@@ -51,9 +51,10 @@ export class BackupService implements OnModuleInit {
       await this.cleanOldBackups();
 
       return { success: true, filename };
-    } catch (error: any) {
-      this.logger.error('Error creando backup al iniciar', error.message);
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error('Error creando backup al iniciar', message);
+      return { success: false, error: message };
     }
   }
 

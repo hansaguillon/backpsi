@@ -39,8 +39,12 @@ export class PatientsController {
   // =========================
   @Get()
   @HttpCode(HttpStatus.OK)
-  findAll(@Query('status') status?: 'active' | 'inactive') {
-    return this.patientsService.findAll(status);
+  findAll(
+    @Query('status') status?: 'active' | 'inactive',
+    @Query('page') page = '1',
+    @Query('limit') limit = '50',
+  ) {
+    return this.patientsService.findAll(status, +page, +limit);
   }
 
   // =========================

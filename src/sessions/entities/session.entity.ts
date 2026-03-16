@@ -11,6 +11,8 @@ import {
 import { Patient } from '../../patients/entities/patient.entity';
 import { Addendum } from '../../addenda/entities/addendum.entity';
 import { SessionAttachment } from '../../session-attachments/entities/session-attachment.entity';
+import { VitalSignsDto } from '../dto/vital-signs.dto';
+import { KinesicPlanDto } from '../dto/kinesic-plan.dto';
 
 @Entity('sessions')
 export class Session {
@@ -45,7 +47,7 @@ export class Session {
      ======================= */
 
   @Column({ name: 'vital_signs', type: 'json', nullable: true })
-  vitalSigns?: any;
+  vitalSigns?: VitalSignsDto;
 
   @Column({ length: 500, nullable: true })
   diagnosis?: string;
@@ -61,7 +63,7 @@ export class Session {
      ======================= */
 
   @Column({ name: 'kinesic_plan', type: 'json', nullable: true })
-  kinesicPlan?: any;
+  kinesicPlan?: KinesicPlanDto;
 
   @Column({ type: 'text', nullable: true })
   evolution?: string;

@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
@@ -22,21 +24,30 @@ import { UploadsModule } from './uploads/uploads.module';
       rootPath: join(__dirname, '..', 'public'),
     }),
 
-    // 🔹 BASE DE DATOS
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: 'juan2983A!',
-      database: 'clinical_db',
+    // 🔹 CONFIG
+    ConfigModule.forRoot({ isGlobal: true }),
 
-      autoLoadEntities: true,
-      synchronize: false,
-      logging: true,
-      extra: {
-    connectTimeout: 10000,
-     },
+    // 🔹 RATE LIMITING
+    ThrottlerModule.forRoot({
+      throttlers: [{ name: 'default', ttl: 60_000, limit: 100 }],
+    }),
+
+    // 🔹 BASE DE DATOS
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'mysql',
+        host: config.get('DB_HOST', 'localhost'),
+        port: config.get<number>('DB_PORT', 3306),
+        username: config.get('DB_USER', 'root'),
+        password: config.get<string>('DB_PASSWORD'),
+        database: config.get('DB_NAME', 'clinical_db'),
+        autoLoadEntities: true,
+        synchronize: false,
+        logging: config.get('NODE_ENV') === 'development',
+        extra: { connectTimeout: 10000 },
+      }),
     }),
 
     // 🔹 MÓDULOS DE LA APp

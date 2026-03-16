@@ -9,6 +9,7 @@ import {
   Request,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { SessionsService } from './sessions.service';
 import { CreateSessionDto } from './dto/create-session.dto';
@@ -50,8 +51,10 @@ export class SessionsController {
   @HttpCode(HttpStatus.OK)
   findAllByPatient(
     @Param('patientId') patientId: string,
+    @Query('page') page = '1',
+    @Query('limit') limit = '30',
   ) {
-    return this.sessionsService.findAllByPatient(patientId);
+    return this.sessionsService.findAllByPatient(patientId, +page, +limit);
   }
 
   /* =====================

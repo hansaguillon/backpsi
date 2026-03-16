@@ -20,7 +20,7 @@ export class AuthService {
     private readonly auditService: AuditService,
   ) {}
 
-  async register(registerDto: RegisterDto) {
+  async register(registerDto: RegisterDto, ip?: string) {
     const existingUser = await this.usersRepository.findOne({
       where: { username: registerDto.username },
     });
@@ -39,17 +39,12 @@ export class AuthService {
 
     await this.usersRepository.save(user);
 
-    await this.auditService.log(
-      user.id,
-      'CREATE',
-      'SYSTEM',
-      user.id,
-    );
+    await this.auditService.log(user.id, 'CREATE', 'SYSTEM', user.id, undefined, ip);
 
     return user; // password_hash excluido automáticamente
   }
 
-  async login(loginDto: LoginDto) {
+  async login(loginDto: LoginDto, ip?: string) {
     const user = await this.usersRepository.findOne({
       where: { username: loginDto.username },
     });
@@ -71,12 +66,7 @@ export class AuthService {
     user.last_login = new Date();
     await this.usersRepository.save(user);
 
-    await this.auditService.log(
-      user.id,
-      'LOGIN',
-      'SYSTEM',
-      user.id,
-    );
+    await this.auditService.log(user.id, 'LOGIN', 'SYSTEM', user.id, undefined, ip);
 
     const payload = {
       sub: user.id,
@@ -85,17 +75,14 @@ export class AuthService {
     };
 
     return {
-  access_token: this.jwtService.sign(payload, {
-    secret: 'mi_clave_super_secreta', // clave fija aquí
-    expiresIn: '5h', // opcional, define expiración
-  }),
-  user: {
-    id: user.id,
-    username: user.username,
-    name: user.name,
-    role: user.role,
-  },
-};
+      access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        role: user.role,
+      },
+    };
   }
 
   async validateUser(userId: string): Promise<User | null> {

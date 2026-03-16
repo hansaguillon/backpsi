@@ -1,4 +1,7 @@
-import { IsString, IsOptional, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { VitalSignsDto } from './vital-signs.dto';
+import { KinesicPlanDto } from './kinesic-plan.dto';
 
 export class UpdateSessionDto {
   @IsOptional()
@@ -14,8 +17,8 @@ export class UpdateSessionDto {
   attachments?: string[];
 
   /* Campos médicos */
-  @IsOptional()
-  vitalSigns?: any;
+  @IsOptional() @ValidateNested() @Type(() => VitalSignsDto)
+  vitalSigns?: VitalSignsDto;
 
   @IsOptional()
   @IsString()
@@ -30,8 +33,8 @@ export class UpdateSessionDto {
   studies?: string;
 
   /* Kinesiología */
-  @IsOptional()
-  kinesicPlan?: any;
+  @IsOptional() @ValidateNested() @Type(() => KinesicPlanDto)
+  kinesicPlan?: KinesicPlanDto;
 
   @IsOptional()
   @IsString()

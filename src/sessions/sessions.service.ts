@@ -81,14 +81,21 @@ export class SessionsService {
   }
 
   /* ===================== FIND BY PATIENT ===================== */
-  async findAllByPatient(patientId: string): Promise<Session[]> {
+  async findAllByPatient(
+    patientId: string,
+    page = 1,
+    limit = 30,
+  ): Promise<{ data: Session[]; total: number }> {
     await this.patientsService.findOne(patientId);
 
-    return this.sessionsRepository.find({
+    const [data, total] = await this.sessionsRepository.findAndCount({
       where: { patientId },
       relations: ['addenda'],
       order: { createdAt: 'DESC' },
+      take: limit,
+      skip: (page - 1) * limit,
     });
+    return { data, total };
   }
 
   /* ===================== FIND ONE ===================== */

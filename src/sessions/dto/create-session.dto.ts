@@ -2,7 +2,11 @@ import {
   IsString,
   IsOptional,
   IsUUID,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import { VitalSignsDto } from './vital-signs.dto';
+import { KinesicPlanDto } from './kinesic-plan.dto';
 
 export class CreateSessionDto {
   @IsUUID()
@@ -25,8 +29,8 @@ export class CreateSessionDto {
      Campos médicos
      ===================== */
 
-  @IsOptional()
-  vitalSigns?: any;
+  @IsOptional() @ValidateNested() @Type(() => VitalSignsDto)
+  vitalSigns?: VitalSignsDto;
 
   @IsOptional()
   @IsString()
@@ -44,8 +48,8 @@ export class CreateSessionDto {
      Kinesiología
      ===================== */
 
-  @IsOptional()
-  kinesicPlan?: any;
+  @IsOptional() @ValidateNested() @Type(() => KinesicPlanDto)
+  kinesicPlan?: KinesicPlanDto;
 
   @IsOptional()
   @IsString()

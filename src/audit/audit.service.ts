@@ -16,13 +16,15 @@ async log(
   entityType: string,
   entityId: string,
   details?: string,
+  ip?: string,
 ): Promise<AuditLog> {
   const auditLog = this.auditRepository.create({
-    user_id: userId,              // ✅ FK directa
+    user_id: userId,
     action,
     entity_type: entityType,
     entity_id: entityId,
-    details: details ?? '',       // ✅ nunca null
+    details: details ?? '',
+    ip_address: ip ?? null,
   });
 
   return this.auditRepository.save(auditLog);
