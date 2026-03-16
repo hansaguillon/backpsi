@@ -9,7 +9,7 @@ import {
 import { AuditLog } from '../../audit/entities/audit.entity';
 import { Addendum } from '../../addenda/entities/addendum.entity';
 
-export type UserRole = 'psychologist' | 'doctor' | 'kinesiologist';
+export type UserRole = 'psychologist' | 'doctor' | 'kinesiologist' | 'admin';
 
 @Entity('users')
 export class User {
@@ -27,7 +27,7 @@ export class User {
 
   @Column({
     type: 'enum',
-    enum: ['psychologist', 'doctor', 'kinesiologist'],
+    enum: ['psychologist', 'doctor', 'kinesiologist', 'admin'],
     default: 'psychologist',
   })
   role: UserRole;
