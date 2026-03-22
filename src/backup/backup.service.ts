@@ -3,9 +3,11 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as zlib from 'zlib';
 import { BACKUP_CONFIG } from './backup.config';
 
 const execAsync = promisify(exec);
+const gzipAsync = promisify(zlib.gzip);
 
 @Injectable()
 export class BackupService implements OnModuleInit {
@@ -41,21 +43,28 @@ export class BackupService implements OnModuleInit {
     const database = process.env.DB_NAME     ?? BACKUP_CONFIG.mysql.database;
     const mysqldumpPath = process.env.MYSQLDUMP_PATH ?? BACKUP_CONFIG.mysql.mysqldumpPath;
 
-    const command = `"${mysqldumpPath}" -h ${host} -P ${port} -u ${user} -p${password} ${database} | gzip > "${filepath}"`;
+    const tempSql = filepath.replace('.sql.gz', '.tmp.sql');
+    const dumpCommand = `"${mysqldumpPath}" -h ${host} -P ${port} -u ${user} -p${password} --result-file="${tempSql}" ${database}`;
 
     try {
-      await execAsync(command, { shell: 'cmd.exe' });
+      // Escribe a archivo .sql primero (evita problemas de encoding en stdout de Windows)
+      await execAsync(dumpCommand, { shell: 'cmd.exe' });
 
-      const stats = fs.statSync(filepath);
-      if (stats.size < 1024) {
+      const sqlBuffer = fs.readFileSync(tempSql);
+      if (sqlBuffer.length < 500) {
         throw new Error('Backup generado pero archivo inválido');
       }
+
+      const compressed = await gzipAsync(sqlBuffer);
+      fs.writeFileSync(filepath, compressed);
+      fs.unlinkSync(tempSql);
 
       this.logger.log(`Backup creado al iniciar: ${filename}`);
       await this.cleanOldBackups();
 
       return { success: true, filename };
     } catch (error: unknown) {
+      if (fs.existsSync(tempSql)) fs.unlinkSync(tempSql);
       const message = error instanceof Error ? error.message : 'Unknown error';
       this.logger.error('Error creando backup al iniciar', message);
       return { success: false, error: message };
