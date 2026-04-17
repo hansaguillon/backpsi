@@ -6,6 +6,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
 import { AppService } from './app.service';
+import { NetworkController } from './network/network.controller';
 
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -66,7 +67,7 @@ import { ExercisePlansModule } from './exercise-plans/exercise-plans.module';
     SessionAttachmentsModule,
     ExercisePlansModule,
   ],
-  controllers: [],
+  controllers: [NetworkController],
   providers: [AppService],
 })
 export class AppModule {}

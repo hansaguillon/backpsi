@@ -6,7 +6,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Session } from 'src/sessions/entities/session.entity';
+import { Session } from '../../sessions/entities/session.entity';
 
 @Entity('session_attachments')
 export class SessionAttachment {

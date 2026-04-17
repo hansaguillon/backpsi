@@ -7,7 +7,7 @@ import { Patient } from './entities/patient.entity';
 // Relaciones
 import { SessionsModule } from '../sessions/sessions.module';
 import { AuditModule } from '../audit/audit.module';
-import { AuthModule } from 'src/auth/auth.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
