@@ -9,7 +9,6 @@ import { Session } from './entities/session.entity';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
 import { PatientsService } from '../patients/patients.service';
-import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class SessionsService {
@@ -24,7 +23,7 @@ export class SessionsService {
   /* ===================== CREATE ===================== */
   async create(
     dto: CreateSessionDto,
-    user: User,
+    user: { sub: string; role: string },
   ): Promise<Session> {
     await this.patientsService.findOne(dto.patientId);
 
