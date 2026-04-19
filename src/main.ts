@@ -54,7 +54,9 @@ async function bootstrap() {
         !req.path.startsWith('/audit') &&
         !req.path.startsWith('/backup') &&
         !req.path.startsWith('/uploads') &&
-        !req.path.startsWith('/session-attachments')) {
+        !req.path.startsWith('/session-attachments') &&
+        !req.path.startsWith('/network-info') &&
+        !req.path.startsWith('/exercise-plans')) {
       res.sendFile(join(publicPath, 'index.html'));
     } else {
       next();

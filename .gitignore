@@ -1,7 +1,10 @@
 # compiled output
-/dist
 /node_modules
 /build
+
+# datos del sistema (no subir al repo)
+/backups
+/uploads
 
 # Logs
 logs
